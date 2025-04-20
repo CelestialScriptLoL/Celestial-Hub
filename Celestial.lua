@@ -261,7 +261,7 @@ MainFunctionsTab:Toggle{
 local Players = game:GetService("Players")
 local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
-local hitbox = workspace.placeFolders.entityManifestCollection.LocalPlayer.hitbox
+local hitbox = workspace.placeFolders.entityManifestCollection[Players.LocalPlayer.Name].hitbox
 local folder = workspace:WaitForChild("placeFolders"):WaitForChild("entityManifestCollection")
 
 -- Lista de nombres válidos de mobs

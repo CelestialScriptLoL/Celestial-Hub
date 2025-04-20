@@ -636,15 +636,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
---MAPS
-local MapsDropDown = TravelFunctionsTab:Dropdown{
-    Name = "Maps Travel",
-    StartingText = "Coming Soon...",
-    Description = "Coming Soon 😉",
-    Items = DropdownItems,
-    Callback = function()
-}
-
 --EVENTFUNCTIONSINTERACTION--
     --EGGHUNT2025--
 local Players = game:GetService("Players")

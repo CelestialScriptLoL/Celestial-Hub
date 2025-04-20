@@ -10,43 +10,47 @@ local GUI = Mercury:Create{
 
 -- TABS --
 local MainFunctionsTab = GUI:Tab{
-    Name = "Best Functions 🔥",
-    Icon = "rbxassetid://123928868710898"
+	Name = "Best Functions 🔥",
+	Icon = "rbxassetid://123928868710898"
 }
 
 local TravelFunctionsTab = GUI:Tab{
-    Name = "Travel Functions 💺🛬",
-    Icon = "rbxassetid://130454774717153"
+	Name = "Travel Functions 💺🛬",
+	Icon = "rbxassetid://130454774717153"
 }
 
 local EventFunctionsTab = GUI:Tab{
-    Name = "Event Functions 💎",
-    Icon = "rbxassetid://125871408037565"
+	Name = "Event Functions 💎",
+	Icon = "rbxassetid://125871408037565"
 }
 
 -- MAINFUNCTIONSTABINTERACTION --
 MainFunctionsTab:Toggle{
-    Name = "Kill Aura ☠",
-    StartingState = false,
-    Description = "Useful for all maps of Vesteria for grinding or leveling up ✨",
-    Callback = function(state) end
+	Name = "Kill Aura ☠",
+	StartingState = false,
+	Description = "Usefull for all maps of Vesteria for grind or lvl up ✨",
+	Callback = function(state) end
 }
 
 MainFunctionsTab:Toggle{
-    Name = "Esp Mobs 👀",
-    StartingState = false,
-    Description = "Useful for seeing all mobs in the map",
-    Callback = function(state) end
+	Name = "Esp Mobs 👀",
+	StartingState = false,
+	Description = "Usefull for see all mobs in the map ",
+	Callback = function(state) end
 }
 
 -- TRAVELFUNCTIONSINTERACTION --
 TravelFunctionsTab:Button{
-    Name = "Fly",
-    Description = "ACTIVATE ONLY ONCE",
-    Callback = function() end
+	Name = "Fly",
+	Description = "ACTIVATE ONLY ONCE",
+	Callback = function() end
 }
 
--- Tabla de lugares Vesteria y sus nombres
+-- Servicios
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PlayerRequest = ReplicatedStorage.network.RemoteFunction.playerRequest_useTeleporter
+
+-- Tabla de lugares Vesteria
 local VesteriaPlace = {
     Mushtown = 2064647391,
     GreatCrossroads = 3852057184,
@@ -69,59 +73,48 @@ local VesteriaPlace = {
     TributeWars = 4837338537
 }
 
--- Referencia al RemoteFunction
-local PlayerRequest = game:GetService("ReplicatedStorage").network.RemoteFunction.playerRequest_useTeleporter
+-- Función para invertir la tabla VesteriaPlace (para buscar nombre por ID)
+local placeNamesById = {}
+for name, id in pairs(VesteriaPlace) do
+    placeNamesById[id] = name
+end
 
--- Lista de destinos de teleport y mapeo de nombres
-local Teleports = {}
-local ActualTeleports = {}
+-- Recolectar todos los teleportDestination válidos
+local teleportDestinations = {}
 
--- Buscar todos los teleportDestinations en el workspace
-for _, v in ipairs(workspace:GetDescendants()) do
-    if v:IsA("ObjectValue") and v.Name == "teleportDestination" then
-        -- Obtener el valor del destino de teleport
-        local teleportValue = v.Value
-        local teleportName = "Unknown"  -- Nombre predeterminado
-
-        -- Si el valor coincide con alguna de las IDs de Vesteria, usar el nombre correspondiente
-        for name, id in pairs(VesteriaPlace) do
-            if teleportValue == id then
-                teleportName = name
-                break
+local function buscarDestinosEn(path)
+    if path and path:IsA("Folder") or path:IsA("Model") then
+        for _, obj in ipairs(path:GetDescendants()) do
+            if obj:IsA("IntValue") and obj.Name == "teleportDestination" then
+                local id = obj.Value
+                local displayName = placeNamesById[id] or ("Unknown (" .. tostring(id) .. ")")
+                table.insert(teleportDestinations, {
+                    displayName,
+                    id
+                })
             end
         end
-
-        -- Agregar el nombre del teleport al Dropdown
-        local teleportParent = v.Parent
-        Teleports[#Teleports + 1] = teleportName
-        ActualTeleports[teleportName] = teleportParent
     end
 end
 
--- Asegurándonos de que 'Teleports' contiene solo los nombres de los lugares y que están correctamente formateados
-if #Teleports == 0 then
-    warn("No se encontraron destinos de teletransporte en el mapa.")
-end
+-- Buscar en los paths
+buscarDestinosEn(workspace:FindFirstChild("TeleportBrick"))
+buscarDestinosEn(workspace:FindFirstChild("teleportPart"))
 
--- Crear el Dropdown con los destinos de teleport
-local MyDropdown = TravelFunctionsTab:Dropdown{
+-- Crear el Dropdown con callback funcional
+TravelFunctionsTab:Dropdown{
     Name = "Maps Travel",
     StartingText = "Select...",
-    Description = "Select a teleport location 🌍",
-    Items = Teleports, -- Asegúrate de que 'Teleports' contenga solo nombres de lugares
-    Callback = function(selected)
-        -- Si el nombre seleccionado existe en el mapeo, teletransportar
-        if ActualTeleports[selected] then
-            local teleport = ActualTeleports[selected]
-            local success, result = pcall(function()
-                -- Llamar a la función para teletransportarse
-                PlayerRequest:InvokeServer(teleport)
+    Description = "Select a place to teleport 😎",
+    Items = teleportDestinations,
+    Callback = function(placeId)
+        if placeId and typeof(placeId) == "number" then
+            local success, err = pcall(function()
+                PlayerRequest:InvokeServer(placeId)
             end)
             if not success then
-                warn("❌ Error al teletransportarse:", result)
+                warn("Error al teletransportarse:", err)
             end
-        else
-            warn("⚠️ No se encontró el teleporter seleccionado.")
         end
     end
 }

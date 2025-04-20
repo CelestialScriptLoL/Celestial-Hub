@@ -73,48 +73,52 @@ local VesteriaPlace = {
     TributeWars = 4837338537
 }
 
--- Función para invertir la tabla VesteriaPlace (para buscar nombre por ID)
-local placeNamesById = {}
+-- Diccionario inverso para búsqueda rápida
+local idToName = {}
+local nameToId = {}
 for name, id in pairs(VesteriaPlace) do
-    placeNamesById[id] = name
+    idToName[id] = name
+    nameToId[name] = id
 end
 
--- Recolectar todos los teleportDestination válidos
-local teleportDestinations = {}
+-- Buscar teleportDestination en los dos paths
+local Items = {}
 
-local function buscarDestinosEn(path)
-    if path and path:IsA("Folder") or path:IsA("Model") then
+local function buscarDestinos(path)
+    if path then
         for _, obj in ipairs(path:GetDescendants()) do
             if obj:IsA("IntValue") and obj.Name == "teleportDestination" then
                 local id = obj.Value
-                local displayName = placeNamesById[id] or ("Unknown (" .. tostring(id) .. ")")
-                table.insert(teleportDestinations, {
-                    displayName,
-                    id
-                })
+                local name = idToName[id] or ("Unknown ("..tostring(id)..")")
+                if not table.find(Items, name) then
+                    table.insert(Items, name)
+                    nameToId[name] = id -- registrar nombre -> id
+                end
             end
         end
     end
 end
 
--- Buscar en los paths
-buscarDestinosEn(workspace:FindFirstChild("TeleportBrick"))
-buscarDestinosEn(workspace:FindFirstChild("teleportPart"))
+buscarDestinos(workspace:FindFirstChild("TeleportBrick"))
+buscarDestinos(workspace:FindFirstChild("teleportPart"))
 
--- Crear el Dropdown con callback funcional
+-- Crear el Dropdown
 TravelFunctionsTab:Dropdown{
     Name = "Maps Travel",
     StartingText = "Select...",
     Description = "Select a place to teleport 😎",
-    Items = teleportDestinations,
-    Callback = function(placeId)
-        if placeId and typeof(placeId) == "number" then
+    Items = Items,
+    Callback = function(selectedName)
+        local placeId = nameToId[selectedName]
+        if placeId then
             local success, err = pcall(function()
                 PlayerRequest:InvokeServer(placeId)
             end)
             if not success then
                 warn("Error al teletransportarse:", err)
             end
+        else
+            warn("Destino no válido seleccionado")
         end
     end
 }

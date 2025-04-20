@@ -53,7 +53,7 @@ MainFunctionsTab:Toggle{
     ["Zap"] = {ID = 32, RemoteNames = {"bolt"}},
 
     -- Warrior
-    ["Spin Slash"] = {ID = 55, RemoteNames = {"spin"}},
+    ["Spin Slash"] = {ID = 26, RemoteNames = {"uppercut"}},
     ["Blasting Slash"] = {ID = 80, RemoteNames = {"aftershock-1", "aftershock-2", "aftershock-3", "tombSpike"}},
     ["Ground Slam"] = {ID = 5, RemoteNames = {"spike", "warlord", "warlord-outer", "divineSlam", "divineSlam-sword", "divineSlam-outer", "shockwave", "shockwave-outer", "slash", "aftershock", "agile-strike", "bee-attack", "ghost-fire", "ghost-explode", "ghost-ring"}},
 
